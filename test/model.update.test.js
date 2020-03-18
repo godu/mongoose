@@ -3054,21 +3054,13 @@ describe('model: update:', function() {
       });
     });
     it('casts objects to array when clobbering with $set (gh-6532)', function(done) {
-      const sub = new Schema({
-        x: String
-      });
+      const sub = new Schema({ x: String });
 
-      const schema = new Schema({
-        name: String,
-        arr: [sub]
-      });
+      const schema = new Schema({ name: String, arr: [sub] });
 
       const Test = db.model('Test', schema);
 
-      const test = {
-        name: 'Xyz',
-        arr: [{ x: 'Z' }]
-      };
+      const test = { name: 'Xyz', arr: [{ x: 'Z' }] };
 
       const cond = { name: 'Xyz' };
       const obj1 = { x: 'Y' };
@@ -3387,6 +3379,18 @@ describe('model: updateOne: ', function() {
           [{ $set: { name: 'Raikou' } }], { new: true });
         assert.ok(updated.updatedAt.getTime() > updatedAt.getTime());
       });
+    });
+  });
+
+  it('works with aliases (gh-8678)', function() {
+    const User = db.model('Test', new Schema({ n: { type: String, alias: 'name' } }));
+    return co(function*() {
+      const user = yield User.create({ name: 'Hafez' });
+
+      yield User.updateMany({ _id: user._id }, { name: 'new name' });
+
+      const updatedUser = yield User.findOne({ _id: user._id });
+      assert.equal(updatedUser.name, 'new name');
     });
   });
 });
